@@ -12,7 +12,7 @@ const HODPage = () => {
 
   const fetchStudentDataBasedOnSubject = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/students/retest?year=${selectedYear}`);
+      const response = await axios.get(`https://fsd-backend-beta.vercel.app/students/retest?year=${selectedYear}`);
       const data = response.data;
       if (data && data.students) {
         const formattedStudents = data.students.map((student) => ({
@@ -72,7 +72,7 @@ const HODPage = () => {
 
   const handleVerificationSubmit = async () => {
     try {
-      const response = await axios.post('http://localhost:5000/hod/verify-students', {
+      const response = await axios.post('https://fsd-backend-beta.vercel.app/hod/verify-students', {
         year: selectedYear,
         isVerified: isTermsAccepted
       });
@@ -107,7 +107,7 @@ const HODPage = () => {
   
     try {
       const response = await axios.post(
-        `http://localhost:5000/hod/retest/register?year=${selectedYear}`,
+        `https://fsd-backend-beta.vercel.app/hod/retest/register?year=${selectedYear}`,
         {
           students: dataToSubmit,
         }

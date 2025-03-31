@@ -49,7 +49,7 @@ const Login = () => {
       const endpoint = endpointMap[selectedType]
       if (!endpoint) throw new Error("Invalid user type")
 
-      const response = await axios.post(`http://localhost:5000/${endpoint}`, { email, password })
+      const response = await axios.post(`https://fsd-backend-beta.vercel.app/${endpoint}`, { email, password })
 
       if (response.status === 200 && response.data.token) {
         const { token, user } = response.data
@@ -122,7 +122,7 @@ const Login = () => {
       
       switch (forgotPasswordStep) {
         case 1: // Send OTP
-          const sendOtpResponse = await axios.post(`http://localhost:5000/${baseRoute}/forgot-password`, {
+          const sendOtpResponse = await axios.post(`https://fsd-backend-beta.vercel.app/${baseRoute}/forgot-password`, {
             email
           });
           if (sendOtpResponse.status === 200) {
@@ -132,7 +132,7 @@ const Login = () => {
           break;
   
         case 2: // Verify OTP
-          const verifyOtpResponse = await axios.post(`http://localhost:5000/${baseRoute}/verify-otp`, {
+          const verifyOtpResponse = await axios.post(`https://fsd-backend-beta.vercel.app/${baseRoute}/verify-otp`, {
             email,
             otp
           });
@@ -149,7 +149,7 @@ const Login = () => {
           }
           
           const resetToken = localStorage.getItem('resetToken');
-          const resetPasswordResponse = await axios.post(`http://localhost:5000/${baseRoute}/reset-password`, {
+          const resetPasswordResponse = await axios.post(`https://fsd-backend-beta.vercel.app/${baseRoute}/reset-password`, {
             resetToken,
             newPassword
           });
