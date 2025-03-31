@@ -240,6 +240,7 @@ export default function Table() {
         ? formBatches.map((batch) => batch.name)
         : classrooms.map((classroom) => classroom.room)
     const subject = selectedSubject
+    console.log("selected subject "+subject)
     const exam_info = selectedExam
     const year = selectedYear
     const sem = selectedSemester
@@ -270,7 +271,7 @@ export default function Table() {
         )
         doc.setTextColor(0, 0, 0)
         doc.setFontSize(10)
-        doc.text(`Subject: - ${subject}`, margin, 44)
+        doc.text(`Subject: - ${selectedSubject}`, margin, 44)
         doc.text("Branch: - Information Technology", margin + contentWidth / 2 + 19, 44, { align: "center" })
         doc.text(`Div: - ${div}`, margin + 55, 50)
         doc.text("Date: - _________________", margin, 50)
