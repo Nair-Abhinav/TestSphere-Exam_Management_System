@@ -3,7 +3,7 @@ import "jspdf-autotable"
 import { MinusCircle, PlusCircle, Trash2 } from "lucide-react"
 import React, { useState, useEffect } from "react"
 import DatePicker from "react-datepicker"
-import { font } from "../../lib/Times_New_Roman_normal";
+import { font } from "../../Lib/Times_New_Roman_normal";
 import jsPDF from "jspdf"
 import logo from "../../assets/logo.png"
 import axios from "axios"
