@@ -2310,7 +2310,7 @@ export default function Table() {
           return
       }
       const response = await axios.get(
-        `http://localhost:5000/api/subjects?semester=${semester}&coursetype=${coursetype}`,
+        `https://fsd-backend-beta.vercel.app/api/subjects?semester=${semester}&coursetype=${coursetype}`,
       )
       console.log("API Response:", response.data)
       const subjectsData = response.data.data
@@ -2401,7 +2401,7 @@ export default function Table() {
       if (courseType === "ILE" || courseType === "DLE" || courseType === "OE") {
         try {
           const res = await axios.get(
-            `http://localhost:5000/api/attendance?year=${year}&sem=${sem}&courseType=${courseType}`,
+            `https://fsd-backend-beta.vercel.app/api/attendance?year=${year}&sem=${sem}&courseType=${courseType}`,
           )
           console.log("Attendance Data:", res.data)
           response = res
@@ -2410,7 +2410,7 @@ export default function Table() {
         }
       } else if (courseType === "MINORS") {
         try {
-          const res = await axios.get(`http://localhost:5000/api/attendance/minors?year=${year}`)
+          const res = await axios.get(`https://fsd-backend-beta.vercel.app/api/attendance/minors?year=${year}`)
           console.log("Attendance Data:", res.data)
           response = res
         } catch (error) {
@@ -2418,7 +2418,7 @@ export default function Table() {
         }
       } else if (courseType === "HONORS") {
         try {
-          const res = await axios.get(`http://localhost:5000/api/attendance/honors?year=${year}`)
+          const res = await axios.get(`https://fsd-backend-beta.vercel.app/api/attendance/honors?year=${year}`)
           console.log("Attendance Data:", res.data)
           response = res
         } catch (error) {
@@ -2427,7 +2427,7 @@ export default function Table() {
       } else {
         try {
           // Regular course type
-          const res = await axios.get(`http://localhost:5000/api/attendance?year=${year}&sem=${sem}&courseType=Regular`)
+          const res = await axios.get(`https://fsd-backend-beta.vercel.app/api/attendance?year=${year}&sem=${sem}&courseType=Regular`)
           console.log("Attendance Data:", res.data)
           response = res
         } catch (error) {
