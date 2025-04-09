@@ -2943,14 +2943,12 @@ export default function Table() {
     
             if (seatIndex < classroom.capacity && currentStudentIndex < attendanceData.length) {
               const student = attendanceData[currentStudentIndex];
-              const sapId = student.Sap;
+              const rollno = student.RollNo;
               // const roll = student.roll;
               doc.setFontSize(11);
-              doc.text(sapId.toString(), x + seatWidth / 2, y + seatHeight / 2 + 2, { align: "center" });
-    
+              doc.text(rollno, x + seatWidth / 2, y + seatHeight / 2 + 2, { align: "center" });
               currentStudentIndex++;
             }
-    
             seatIndex++;
           }
         }
