@@ -2310,7 +2310,7 @@ export default function Table() {
           return
       }
       const response = await axios.get(
-        `https://fsd-backend-beta.vercel.app/api/subjects?semester=${semester}&coursetype=${coursetype}`,
+        `http://localhost:5000/api/subjects?semester=${semester}&coursetype=${coursetype}`,
       )
       console.log("API Response:", response.data)
       const subjectsData = response.data.data
@@ -2401,25 +2401,26 @@ export default function Table() {
       if (courseType === "ILE" || courseType === "DLE" || courseType === "OE") {
         try {
           const res = await axios.get(
-            `https://fsd-backend-beta.vercel.app/api/attendance?year=${year}&sem=${sem}&courseType=${courseType}`,
+            `http://localhost:5000/api/attendance?year=${year}&sem=${sem}&courseType=${courseType}`,
           )
           console.log("Attendance Data:", res.data)
           response = res
         } catch (error) {
           console.error("Error in axios request (ILE/DLE):", error)
         }
-      } else if (courseType === "MINORS") {
+      } else if (courseType === "Minors") {
         try {
-          const res = await axios.get(`https://fsd-backend-beta.vercel.app/api/attendance/minors?year=${year}`)
+          const res = await axios.get(`http://localhost:5000/api/attendance/minors?year=${year}`)
           console.log("Attendance Data:", res.data)
           response = res
         } catch (error) {
           console.error("Error in axios request (MINORS):", error)
         }
-      } else if (courseType === "HONORS") {
+      } else if (courseType === "Honors") {
         try {
-          const res = await axios.get(`https://fsd-backend-beta.vercel.app/api/attendance/honors?year=${year}`)
-          console.log("Attendance Data:", res.data)
+          // const res = await axios.get(`https://fsd-backend-beta.vercel.app/api/attendance/honors?year=${year}`)
+          const res = await axios.get(`http://localhost:5000/api/attendance/honors?year=${year}`) 
+          console.log("Attendance Data Honors:", res.data)
           response = res
         } catch (error) {
           console.error("Error in axios request (HONORS):", error)
@@ -2427,7 +2428,7 @@ export default function Table() {
       } else {
         try {
           // Regular course type
-          const res = await axios.get(`https://fsd-backend-beta.vercel.app/api/attendance?year=${year}&sem=${sem}&courseType=Regular`)
+          const res = await axios.get(`http://localhost:5000/api/attendance?year=${year}&sem=${sem}&courseType=Regular`)
           console.log("Attendance Data:", res.data)
           response = res
         } catch (error) {
@@ -2486,7 +2487,10 @@ export default function Table() {
       selectedExam === "Practicals/Orals"
         ? formBatches.map((batch) => batch.name)
         : classrooms.map((classroom) => classroom.room)
-    const subject = selectedSubject
+        // Even cleaner version
+const subject = (selectedCourseType === "Honors" || selectedCourseType === "Minors") 
+? selectedCourseType 
+: selectedSubject;
     const exam_info = selectedExam
     const year = selectedYear
     const sem = selectedSemester
@@ -2497,6 +2501,7 @@ export default function Table() {
     const totalRows = attendanceData.length
 
     if (type === "attendance") {
+     // Even cleaner version
       const doc = new jsPDF("p", "mm", "a4")
       doc.setFont("Times New Roman", "bold")
       // Define margins and page width
@@ -2623,16 +2628,16 @@ export default function Table() {
                   : classrooms[currentClassroomIndex]
               ).capacity
             }
-
             currentDivision = student.Division // Update division
             currentSub = student.SubCode
             addHeader(blockNos[currentClassroomIndex], currentDivision, currentSub) // Pass block number for the new classroom
             pageRows.length = 0 // Clear rows for the new page
             pageSrNo = 1 // Reset serial number
           }
-
           // Add student to the current page
           pageRows.push([pageSrNo++, student.Sap, student.Name])
+          // here student name is undefined
+          console.log("Student Name:", student.Name + " | SAP No.: " + student.Sap)
           currentIndex++
           remainingCapacity--
         }
@@ -2757,12 +2762,17 @@ export default function Table() {
               const division = attendanceData[currentStudentIndex].Division // Get the division
               const sapId = attendanceData[currentStudentIndex].Sap // Get the SAP ID
               const SubCode = attendanceData[currentStudentIndex].SubCode // Get the Subject Code
+              const dept_minor = attendanceData[currentStudentIndex].Department // Get the Subject Code
               if (selectedCourseType === "ILE" || selectedCourseType === "DLE" || selectedCourseType === "OE") {
                 console.log(SubCode);
                 classroomData.push(`${SubCode}-${sapId}`) // Concatenate division and SAP ID
               } else if (selectedCourseType === "Regular") {
                 classroomData.push(`${division}-${sapId}`) // Concatenate division and SAP ID
-              }
+              } else if (selectedCourseType === "Minors") {
+                classroomData.push(`${dept_minor}-${sapId}`) // Only SAP ID
+              }else if (selectedCourseType === "Honors") {
+                classroomData.push(`${division}-${sapId}`) // Only SAP ID
+              } 
               currentStudentIndex++ // Move to the next student
             } else {
               classroomData.push("") // Fill with blank if no more students

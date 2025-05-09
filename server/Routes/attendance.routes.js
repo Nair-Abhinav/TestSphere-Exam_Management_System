@@ -8,6 +8,7 @@ router.get('/attendance', async (req, res) => {
         const year = req.query.year; // e.g., 'TY'
         const sem = req.query.sem;
         const courseType = req.query.courseType; // e.g., 'DLE'
+        console.log(year, sem, courseType);
         const attendance = await getAttendance(year,sem,courseType);
         res.status(200).json({
             success: true,
@@ -45,6 +46,7 @@ router.get('/attendance/minors', async (req, res) => {
 router.get('/attendance/honors', async (req, res) => {
     try {
         const year = req.query.year; // e.g., 'TY'
+        console.log(year);
         const honors = await getAttendanceHonors(year);
         res.status(200).json({
             success: true,

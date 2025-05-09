@@ -2,7 +2,7 @@ const { validationResult } = require('express-validator');
 const { MongoClient } = require('mongodb');
 const uri = process.env.MONGO_URI;
 const client = new MongoClient(uri);
-const dbName = "Information_Technology";
+const dbName = process.env.DB_NAME;
 
 exports.registerStudents = async (req, res) => {
     const errors = validationResult(req);

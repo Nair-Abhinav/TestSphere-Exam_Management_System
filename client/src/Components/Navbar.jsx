@@ -27,7 +27,7 @@ const Navbar = () => {
       // Updated axios configuration
       const response = await axios({
         method: 'get',
-        url: `https://fsd-backend-beta.vercel.app${logoutRoute}`,
+        url: `http://localhost:5000${logoutRoute}`,
         withCredentials: true,
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token') || sessionStorage.getItem('token')}`,

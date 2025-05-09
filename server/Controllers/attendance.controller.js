@@ -3,47 +3,49 @@ const uri = process.env.MONGO_URI;
 const client = new MongoClient(uri);
 const dbName = "Information_Technology";
 
-exports.getAttendance = async (year, sem, courseType) => {
+exports.getAttendance = async (year, sem,courseType) => {
     if (!year) {
         throw new Error('Year is required');
     }
     try {
         await client.connect();
         const db = client.db(dbName);
-        const yearCollection = db.collection(year);
+        // const yearCollection = db.collection(`${year}_Sem${sem}_${division}_${courseType}`);
+        const yearCollection = db.collection(year)
         const subjectCollection = db.collection(`Sem${sem}_Subjects`);
-
         console.log("Year:", year, "Sem:", sem, "Course Type:", courseType || "Not specified");
 
         let data = [];
 
         if (courseType === 'Regular') {
             // Fetch all students if courseType is 'Regular'
+            console.log("Fetching all students for Regular course type");
             data = await yearCollection
                 .find({}, { projection: { _id: 0 } })
                 .sort({ SrNo: 1 })
                 .toArray();
         } else if (courseType === 'DLE' || courseType === 'ILE' || courseType === 'OE' ) {
-            // Fetch students where courseType exists
+            console.log(`Fetching students for course type: ${courseType}`);
+            // Fetch students where courseType has a value > 0
             const students = await yearCollection
-                .find({ [courseType]: { $exists: true } }, { projection: { _id: 0 } })
+                .find({ [courseType]: { $gt: 0 } }, { projection: { _id: 0 } })
                 .sort({ [courseType]: 1, SrNo: 1 }) // Sorting by courseType and then SrNo
                 .toArray();
-
+            
+            console.log(`Found ${students.length} students for ${courseType}`);
+            
             if (!students.length) {
                 console.log(`No students found for Year: ${year}, Course Type: ${courseType}`);
                 return [];
             }
-
+        
             for (let student of students) {
                 const courseValue = student[courseType];
-
                 if (courseValue) {
                     const subjectData = await subjectCollection.findOne(
                         { [courseType]: courseValue }, 
                         { projection: { _id: 0, SubCode: 1, Subject: 1 } }
                     );
-
                     if (subjectData) {
                         student.SubCode = subjectData.SubCode || "Not Found";
                         student.Subject = subjectData.Subject || "Not Found";
@@ -72,10 +74,6 @@ exports.getAttendance = async (year, sem, courseType) => {
         }
     }
 };
-
-
-
-
 
 exports.getAttendanceMinors = async (year) => {
     if (!year) {

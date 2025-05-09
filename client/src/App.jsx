@@ -11,6 +11,7 @@ import HODPage from "./Components/Phase_2/HODPage";
 import AdministratorPage from "./Components/Phase_3/AdministratorPage";
 import { UserContext } from "./Context/userContext";
 import RefreshHandler from "./Components/RefreshHandler";
+import StudentUpload from "./Components/Phase_3/AdministratorPage";
 
 function App() {
   const { isLoggedIn, login } = useContext(UserContext);
@@ -57,7 +58,7 @@ function App() {
           <Route path="/arrangement" element={<PrivateRoute element={<Arrangements />} />} />
           <Route path="/retest" element={<PrivateRoute element={<Retest />} />} />
           <Route path="/HOD" element={<PrivateRoute element={<HODPage />} />} />
-          <Route path="/administrator" element={<PrivateRoute element={<AdministratorPage />} />} />
+          <Route path="/administrator" element={<PrivateRoute element={<StudentUpload></StudentUpload>} />} />
         </Routes>
       </main>
       {isLoggedIn && <Footer />}
