@@ -9,9 +9,10 @@ import TimeTable from "./Components/Phase_1/TimeTable";
 import Login from "./Components/Login";
 import HODPage from "./Components/Phase_2/HODPage";
 import AdministratorPage from "./Components/Phase_3/AdministratorPage";
+import StudentUpload from "./Components/Phase_3/studentUpload";
+import SubjectUpload from "./Components/Phase_3/SubjectUpload";
 import { UserContext } from "./Context/userContext";
 import RefreshHandler from "./Components/RefreshHandler";
-import StudentUpload from "./Components/Phase_3/AdministratorPage";
 
 function App() {
   const { isLoggedIn, login } = useContext(UserContext);
@@ -58,7 +59,9 @@ function App() {
           <Route path="/arrangement" element={<PrivateRoute element={<Arrangements />} />} />
           <Route path="/retest" element={<PrivateRoute element={<Retest />} />} />
           <Route path="/HOD" element={<PrivateRoute element={<HODPage />} />} />
-          <Route path="/administrator" element={<PrivateRoute element={<StudentUpload></StudentUpload>} />} />
+          <Route path="/administrator" element={<PrivateRoute element={<AdministratorPage />} />} />
+          <Route path="/administrator/student-upload" element={<PrivateRoute element={<StudentUpload />} />} />
+          <Route path="/administrator/subject-upload" element={<PrivateRoute element={<SubjectUpload />} />} />
         </Routes>
       </main>
       {isLoggedIn && <Footer />}

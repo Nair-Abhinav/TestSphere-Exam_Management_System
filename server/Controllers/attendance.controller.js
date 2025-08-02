@@ -3,59 +3,66 @@ const uri = process.env.MONGO_URI;
 const client = new MongoClient(uri);
 const dbName = "Information_Technology";
 
-exports.getAttendance = async (year, sem,courseType) => {
+exports.getAttendance = async (year, sem, courseType, selectedSubjects = []) => {
     if (!year) {
         throw new Error('Year is required');
     }
     try {
         await client.connect();
         const db = client.db(dbName);
-        // const yearCollection = db.collection(`${year}_Sem${sem}_${division}_${courseType}`);
-        const yearCollection = db.collection(year)
+        const yearCollection = db.collection(`${year}_${courseType}_Data`);
         const subjectCollection = db.collection(`Sem${sem}_Subjects`);
         console.log("Year:", year, "Sem:", sem, "Course Type:", courseType || "Not specified");
 
         let data = [];
 
         if (courseType === 'Regular') {
-            // Fetch all students if courseType is 'Regular'
+            // Fetch all students for Regular, sorted by globSrNo and division, exclude createdAt, updatedAt, __v
             console.log("Fetching all students for Regular course type");
             data = await yearCollection
-                .find({}, { projection: { _id: 0 } })
-                .sort({ SrNo: 1 })
+                .find({}, { projection: { createdAt: 0, updatedAt: 0, __v: 0, _id: 0 } })
+                .sort({ globSrNo: 1, division: 1 })
                 .toArray();
-        } else if (courseType === 'DLE' || courseType === 'ILE' || courseType === 'OE' ) {
-            console.log(`Fetching students for course type: ${courseType}`);
-            // Fetch students where courseType has a value > 0
-            const students = await yearCollection
-                .find({ [courseType]: { $gt: 0 } }, { projection: { _id: 0 } })
-                .sort({ [courseType]: 1, SrNo: 1 }) // Sorting by courseType and then SrNo
-                .toArray();
-            
-            console.log(`Found ${students.length} students for ${courseType}`);
-            
-            if (!students.length) {
-                console.log(`No students found for Year: ${year}, Course Type: ${courseType}`);
-                return [];
-            }
-        
-            for (let student of students) {
-                const courseValue = student[courseType];
-                if (courseValue) {
-                    const subjectData = await subjectCollection.findOne(
-                        { [courseType]: courseValue }, 
-                        { projection: { _id: 0, SubCode: 1, Subject: 1 } }
-                    );
-                    if (subjectData) {
-                        student.SubCode = subjectData.SubCode || "Not Found";
-                        student.Subject = subjectData.Subject || "Not Found";
-                    } else {
-                        student.SubCode = "Not Found";
-                        student.Subject = "Not Found";
-                    }
+        } else if (courseType === 'DLE' || courseType === 'ILE' || courseType === 'OE') {
+            // New logic for electives with subject filtering and ordering
+            // selectedSubjects should be an array of subject names (from frontend)
+            // If selectedSubjects is a string (from query), parse it
+            let subjectsArray = selectedSubjects;
+            if (typeof selectedSubjects === "string") {
+                try {
+                    subjectsArray = JSON.parse(selectedSubjects);
+                } catch (e) {
+                    subjectsArray = [];
                 }
             }
-            data = students;
+            if (!Array.isArray(subjectsArray) || subjectsArray.length === 0) {
+                // If no subjects provided, return empty
+                return [];
+            }
+
+            let allStudents = [];
+            for (const subject of subjectsArray) {
+                // Find students who have this subject in their selectedSubjects array
+                const students = await yearCollection
+                    .find(
+                        { selectedSubjects: subject },
+                        { projection: { createdAt: 0, updatedAt: 0, __v: 0, _id: 0 } }
+                    )
+                    .sort({ selectedSubjects: 1, globSrNo: 1, division: 1 })
+                    .toArray();
+                // Attach a helper property for sorting/grouping if needed
+                students.forEach(s => { s.selectedSubject = subject; });
+                allStudents = allStudents.concat(students);
+            }
+            // Optionally, sort again to ensure order: by subject (as per selectedSubjects), then globSrNo, then division
+            allStudents.sort((a, b) => {
+                const subjA = subjectsArray.indexOf(a.selectedSubject);
+                const subjB = subjectsArray.indexOf(b.selectedSubject);
+                if (subjA !== subjB) return subjA - subjB;
+                if (a.division !== b.division) return a.division.localeCompare(b.division);
+                return a.globSrNo - b.globSrNo;
+            });
+            data = allStudents;
         } else {
             console.log("Invalid courseType provided. Returning empty data.");
         }
@@ -92,7 +99,7 @@ exports.getAttendanceMinors = async (year) => {
                 {},
                 { projection: { _id: 0 } }
             )
-            .sort({ Sr_No: 1 })
+            .sort({ SrNo: 1 })
             .toArray();
 
         console.log(`Found ${data.length} Minors records`);
@@ -127,7 +134,7 @@ exports.getAttendanceHonors = async (year) => {
                 { Honors_Minors: 1 },
                 { projection: { _id: 0 } }
             )
-            .sort({ Sr_No: 1 })
+            .sort({ SrNo: 1 })
             .toArray();
 
         console.log(`Found ${data.length} Honors records`);

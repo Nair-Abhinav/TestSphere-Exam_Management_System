@@ -8,8 +8,18 @@ router.get('/attendance', async (req, res) => {
         const year = req.query.year; // e.g., 'TY'
         const sem = req.query.sem;
         const courseType = req.query.courseType; // e.g., 'DLE'
-        console.log(year, sem, courseType);
-        const attendance = await getAttendance(year,sem,courseType);
+        // Parse selectedSubjects from query (it will be a string)
+        let selectedSubjects = req.query.selectedSubjects;
+        if (typeof selectedSubjects === "string") {
+            try {
+                selectedSubjects = JSON.parse(selectedSubjects);
+            } catch (e) {
+                // If parsing fails, fallback to empty array
+                selectedSubjects = [];
+            }
+        }
+        // Pass selectedSubjects to controller
+        const attendance = await getAttendance(year, sem, courseType, selectedSubjects);
         res.status(200).json({
             success: true,
             data: attendance

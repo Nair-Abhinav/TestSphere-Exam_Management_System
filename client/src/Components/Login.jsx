@@ -376,7 +376,7 @@ const Login = () => {
                   {loading ? "Logging in..." : `Login as ${loginTypes[activeType]}`}
                 </motion.button>
                 <div className="text-sm">
-                  <a
+                  {/* <a
                     href="#"
                     onClick={(e) => {
                       e.preventDefault()
@@ -386,7 +386,7 @@ const Login = () => {
                     className="font-medium text-gray-600 hover:text-gray-900"
                   >
                     Forgot your password?
-                  </a>
+                  </a> */}
                 </div>
               </motion.form>
             ) : (

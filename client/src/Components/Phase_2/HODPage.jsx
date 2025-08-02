@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react"
 import axios from "axios"
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+import logo from "../../assets/logo.png"
 
 const HODPage = () => {
   const [messages] = useState(["SY", "TY", "BE"])
@@ -9,7 +12,7 @@ const HODPage = () => {
   const [selectedSemester, setSelectedSemester] = useState(null)
   const [localVerifiedData, setLocalVerifiedData] = useState([])
   const [isTermsAccepted, setIsTermsAccepted] = useState(false)
-
+  
   const fetchStudentDataBasedOnSubject = async () => {
     try {
       const response = await axios.get(`http://localhost:5000/students/retest?year=${selectedYear}`);
@@ -25,7 +28,7 @@ const HODPage = () => {
           termTest1: student.termTest1,
           termTest2: student.termTest2,
           semester: student.semester,
-          isVerified: student.isVerified || false, // Include isVerified field
+          isVerified: student.isVerified || false, 
         }));
         setStudents(formattedStudents);
         setLocalVerifiedData(formattedStudents.filter((s) => s.isVerified)); // Initialize localVerifiedData
@@ -41,7 +44,7 @@ const HODPage = () => {
 
   useEffect(() => {
     if (selectedYear) {
-      setSelectedSemester(selectedYear === "SY" ? "3" : selectedYear === "TY" ? "5" : "7")
+      setSelectedSemester(selectedYear === "SY" ? "4" : selectedYear === "TY" ? "6" : "6")
       fetchStudentDataBasedOnSubject()
     }
   }, [selectedYear]);
@@ -69,6 +72,74 @@ const HODPage = () => {
       }
     })
   }
+const handleDownloadRetestSheet = () => {
+  if (localVerifiedData.length === 0) {
+    alert("No verified students to download.");
+    return;
+  }
+
+const generatePDF = () => {
+  const doc = new jsPDF("p", "mm", "a4");
+  doc.setFont("Times New Roman", "bold");
+  const margin = 20;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const contentWidth = pageWidth - 2 * margin;
+  const imgData = logo;
+  doc.addImage(imgData, "PNG", margin, 5, contentWidth, 20);
+  const tableStartY = 35; // Adjusted to add space between the logo and the table
+  doc.setFontSize(12);
+  doc.setTextColor(255, 0, 0);
+  doc.text(
+    `${selectedYear} B. Tech SEM ${selectedSemester}:(2024-25): RETEST REPORT`,
+    margin + contentWidth / 2,
+    tableStartY,
+    { align: "center" }
+  );
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(10);
+
+  const columns = [
+    "SAP ID",
+    "Name",
+    "Roll No",
+    "Division",
+    "Subject",
+    "Semester",
+    "Term Test 1",
+    "Term Test 2",
+  ];
+  const rows = localVerifiedData.map((student) => [
+    student.sapId,
+    student.name,
+    student.rollNo,
+    student.div,
+    student.subject,
+    student.semester,
+    student.termTest1 ? "Yes" : "No",
+    student.termTest2 ? "Yes" : "No",
+  ]);
+
+  // Set font to Times New Roman for table content
+  doc.autoTable({
+    head: [columns],
+    body: rows,
+    startY: 50,
+    margin: { top: 50 },
+    styles: { font: "Times New Roman" }, // Set font for table content
+  });
+  const signatureY = doc.internal.pageSize.getHeight() - 22
+      doc.text("Mr. Pravin Hole", 36, signatureY)
+      doc.text("Ms. Anushree Patkar", 34, signatureY + 5)
+      doc.text("Ms. Priyanca Gonsalves", 30, signatureY + 10)
+      doc.text("Ms. Neha Katre", 100, signatureY + 10)
+      doc.text("Dr. Vinaya Sawant", 150, signatureY + 10)
+      doc.text("Exam Coordinator", 35, signatureY + 18)
+      doc.text("Associate Head", 100, signatureY + 18)
+      doc.text("HOD, IT", 158, signatureY + 18)
+      doc.save("Retest_Sheet.pdf");
+};
+  generatePDF();
+  };
 
   const handleVerificationSubmit = async () => {
     try {
@@ -105,6 +176,8 @@ const HODPage = () => {
       isVerified: true,
     }));
   
+
+
     try {
       const response = await axios.post(
         `http://localhost:5000/hod/retest/register?year=${selectedYear}`,
@@ -226,6 +299,12 @@ const HODPage = () => {
               >
                 Submit
               </button>
+                <button
+    onClick={handleDownloadRetestSheet}
+    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+  >
+    Download Retest Sheet
+  </button>
             </div>
           </div>
         ) : (
@@ -255,10 +334,14 @@ const HODPage = () => {
               </ul>
             )}
           </div>
-        )}
+          
+        )
+        }
       </div>
+
     </div>
-  )
-}
+    
+  );
+};
 
 export default HODPage

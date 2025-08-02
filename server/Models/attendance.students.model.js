@@ -4,7 +4,6 @@ const studentSchema = new mongoose.Schema({
   rollNo: String,
   sapId: String,
   name: String,
-  subjects: [String]
 }, { 
   strict: false,  // To allow flexibility for different collection schemas
   timestamps: true

@@ -13,6 +13,7 @@ const adminRoutes = require('./Routes/admin.routes');
 const studentRoutes = require('./Routes/student.routes');
 const timetableRoutes = require('./Routes/timetable.routes');
 const uploadRoutes = require('./Routes/upload.routes'); // New route for upload feature
+const subjectUploadRoutes = require('./Routes/subjectUpload.routes');
 const cors = require('cors');
 
 const startServer = async () => {
@@ -42,6 +43,7 @@ const startServer = async () => {
         
         // New upload route
         app.use('/upload', uploadRoutes);
+        app.use('/api', subjectUploadRoutes); 
 
         // Basic route for testing
         app.get('/', (req, res) => {
