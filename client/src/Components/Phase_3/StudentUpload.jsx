@@ -29,28 +29,35 @@ function StudentUpload() {
     }, [formData.year]);
 
     useEffect(() => {
-        if (['ILE', 'DLE', 'OE'].includes(formData.type)) {
+        // Only fetch if type is elective and year/semester/type are set
+        if (["ILE", "DLE", "OE"].includes(formData.type) && formData.year && formData.semester) {
             fetchSubjects();
         }
-    }, [formData.type, formData.year, formData.semester, formData.division]);
+    }, [formData.type, formData.year, formData.semester]);
 
+    // Fetch subjects based on year, semester, and coursetype as per subjectController.js
     const fetchSubjects = async () => {
+        if (!formData.year || !formData.semester) return;
         try {
-            const semesterParam = `Sem${formData.semester}_Subjects`;
-            let coursetype = formData.type;
-
-            const response = await axios.get(
-                `http://localhost:5000/api/subjects?semester=${semesterParam}&coursetype=${coursetype}`
-            );
-
-            const subjectsData = response.data.data;
-            const subjectsArray = Array.isArray(subjectsData)
-                ? subjectsData.map((subject) => subject.Subject)
-                : [];
-
-            setSubjects(subjectsArray);
-        } catch (error) {
-            console.error("Error fetching subjects:", error);
+            let url = `http://localhost:5000/api/subjects?year=${formData.year}&semester=${formData.semester}`;
+            if (["DLE", "ILE", "OE"].includes(formData.type)) {
+                url += `&coursetype=${formData.type}`;
+            }
+            const res = await axios.get(url);
+            console.log("Raw backend response:", res.data);
+            if (res.data.success) {
+                // Store only subject names as plain strings (no subcode, no curly braces)
+                const subjectsArray = Array.isArray(res.data.data)
+  ? res.data.data.map(s => (s.Subject || s.subject || s.name || '').trim())
+  : [];
+setSubjects(subjectsArray);
+                console.log("Fetched Subjects:", subjectsArray);
+            } else {
+                console.error("Failed to fetch subjects", res.data);
+                setSubjects([]);
+            }
+        } catch (err) {
+            console.error("Error fetching subjects:", err);
             setSubjects([]);
         }
     };
@@ -145,8 +152,8 @@ function StudentUpload() {
         data.append('type', formData.type);
 
         if (['ILE', 'DLE', 'OE'].includes(formData.type)) {
-            data.append('selectedSubjects', JSON.stringify([formData.subject]));
-        }
+  data.append('selectedSubjects', JSON.stringify([formData.subject]));
+}
 
         try {
             const res = await axios.post(API_URL, data, {
@@ -209,8 +216,11 @@ function StudentUpload() {
                     <label className="block text-gray-700 mb-1 font-medium">Semester</label>
                     <select name="semester" value={formData.semester} onChange={handleInputChange} className="w-full border px-3 py-2 rounded">
                         <option value="">Select Semester</option>
+                        <option value="3">3</option>
                         <option value="4">4</option>
+                        <option value="5">5</option>
                         <option value="6">6</option>
+                        <option value="7">7</option>
                         <option value="8">8</option>
                     </select>
                 </div>
@@ -246,8 +256,8 @@ function StudentUpload() {
                         <select name="subject" value={formData.subject} onChange={handleInputChange} className="w-full border px-3 py-2 rounded">
                             <option value="">Select Subject</option>
                             {subjects.map((sub, idx) => (
-                                <option key={idx} value={sub}>{sub}</option>
-                            ))}
+  sub && <option key={idx} value={sub}>{sub}</option>
+))}
                             <option value="OTHER">OTHER</option>
                         </select>
                     </div>

@@ -20,11 +20,11 @@ exports.uploadSubject = async (req, res) => {
         const collectionName = `${year}_Sem${semester}_Subjects`;
         const SubjectCollection = mongoose.connection.collection(collectionName);
 
-        const last = await SubjectCollection.find().sort({ "Sr_ No_": -1 }).limit(1).toArray();
-        const nextSrNo = last.length > 0 ? (last[0]["Sr_ No_"] || 0) + 1 : 1;
+        const last = await SubjectCollection.find().sort({ "SrNo": -1 }).limit(1).toArray();
+        const nextSrNo = last.length > 0 ? (last[0]["SrNo"] || 0) + 1 : 1;
 
         const docToInsert = {
-            "Sr_ No_": nextSrNo,
+            "SrNo": nextSrNo,
             ...fixedSubjectDoc
         };
 

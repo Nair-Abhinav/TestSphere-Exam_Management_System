@@ -3,10 +3,11 @@ const router = express.Router();
 const { getSubjectsBySemesterAndType } = require('../Controllers/subject.Controller');
 router.get('/subjects', async (req, res) => {
     try { 
+        const year = req.query.year;
         const semester = req.query.semester;
         const coursetype = req.query.coursetype;
-        console.log(`Semester: ${semester}, Course Type: ${coursetype}`);
-        const subjects = await getSubjectsBySemesterAndType(semester, coursetype);
+        console.log(`Year: ${year}, Semester: ${semester}, Course Type: ${coursetype}`);
+        const subjects = await getSubjectsBySemesterAndType(year, semester, coursetype);
         res.status(200).json({
             success: true,
             data: subjects

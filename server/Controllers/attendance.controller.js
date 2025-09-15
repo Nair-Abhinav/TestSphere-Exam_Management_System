@@ -44,12 +44,12 @@ exports.getAttendance = async (year, sem, courseType, selectedSubjects = []) => 
             for (const subject of subjectsArray) {
                 // Find students who have this subject in their selectedSubjects array
                 const students = await yearCollection
-                    .find(
-                        { selectedSubjects: subject },
-                        { projection: { createdAt: 0, updatedAt: 0, __v: 0, _id: 0 } }
-                    )
-                    .sort({ selectedSubjects: 1, globSrNo: 1, division: 1 })
-                    .toArray();
+  .find(
+    { selectedSubjects: { $elemMatch: { $regex: `^\\s*${subject.trim()}\\s*$`, $options: 'i' } } },
+    { projection: { createdAt: 0, updatedAt: 0, __v: 0, _id: 0 } }
+  )
+  .sort({ selectedSubjects: 1, globSrNo: 1, division: 1 })
+  .toArray();
                 // Attach a helper property for sorting/grouping if needed
                 students.forEach(s => { s.selectedSubject = subject; });
                 allStudents = allStudents.concat(students);

@@ -76,22 +76,23 @@ function TimeTable() {
 
   const handleSelectSubject = async (e) => {
     try {
-      const semester = `Sem${selectedSemester}_Subjects`
-      let coursetype = ""
+      // Use yearText and selectedSemester to match backend collection naming
+      if (!yearText || !selectedSemester) return;
+      let coursetype = ""; // Set this if you want to filter by course type
       const response = await axios.get(
-        `http://localhost:5000/api/subjects?semester=${semester}&coursetype=${coursetype}`,
-      )
-      console.log("API Response:", response.data)
-      const subjectsData = response.data.data
+        `http://localhost:5000/api/subjects?year=${yearText}&semester=${selectedSemester}&coursetype=${coursetype}`
+      );
+      console.log("API Response:", response.data);
+      const subjectsData = response.data.data;
       if (Array.isArray(subjectsData)) {
-        const subjectsArray = subjectsData.map((subject) => subject.Subject)
-        console.log("Subjects Array:", subjectsArray)
-        setSampleSubjectData(subjectsArray)
+        const subjectsArray = subjectsData.map((subject) => subject.Subject);
+        console.log("Subjects Array:", subjectsArray);
+        setSampleSubjectData(subjectsArray);
       } else {
-        console.error("Expected an array but received:", subjectsData)
+        console.error("Expected an array but received:", subjectsData);
       }
     } catch (error) {
-      console.error("Error fetching subjects:", error)
+      console.error("Error fetching subjects:", error);
     }
   }
 

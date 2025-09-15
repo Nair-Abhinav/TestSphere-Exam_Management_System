@@ -85,39 +85,40 @@ export default function Table() {
   //printpracticalarrangement..text
   const handleSelectSubject = async (e) => {
     try {
-      const semester = `Sem${selectedSemester}_Subjects`
-      let coursetype = ""
+      // Use selectedYear and selectedSemester to match backend collection naming
+      if (!selectedYear || !selectedSemester) return;
+      let coursetype = "";
       switch (selectedCourseType) {
         case "Regular":
-          coursetype = "Regular"
-          break
+          coursetype = "Regular";
+          break;
         case "ILE":
-          coursetype = "ILE"
-          break
+          coursetype = "ILE";
+          break;
         case "DLE":
-          coursetype = "DLE"
-          break
+          coursetype = "DLE";
+          break;
         case "OE":
-          coursetype = "OE"
-          break
+          coursetype = "OE";
+          break;
         default:
-          console.error("Invalid course type selected")
-          return
+          coursetype = "";
       }
+      // Send year and semester as separate params
       const response = await axios.get(
-        `http://localhost:5000/api/subjects?semester=${semester}&coursetype=${coursetype}`,
-      )
-      console.log("API Response:", response.data)
-      const subjectsData = response.data.data
+        `http://localhost:5000/api/subjects?year=${selectedYear}&semester=${selectedSemester}&coursetype=${coursetype}`
+      );
+      console.log("API Response:", response.data);
+      const subjectsData = response.data.data;
       if (Array.isArray(subjectsData)) {
-        const subjectsArray = subjectsData.map((subject) => subject.Subject)
-        console.log("Subjects Array:", subjectsArray)
-        setSampleSubjectData(subjectsArray)
+        const subjectsArray = subjectsData.map((subject) => subject.Subject);
+        console.log("Subjects Array:", subjectsArray);
+        setSampleSubjectData(subjectsArray);
       } else {
-        console.error("Expected an array but received:", subjectsData)
+        console.error("Expected an array but received:", subjectsData);
       }
     } catch (error) {
-      console.error("Error fetching subjects:", error)
+      console.error("Error fetching subjects:", error);
     }
   }
   const handleSemesterChange = async (e) => {
