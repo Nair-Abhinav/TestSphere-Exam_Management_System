@@ -120,21 +120,33 @@ exports.getRetestStudentsBySubject = async (req, res) => {
 exports.getStudent = async (req, res) => {
     await client.connect();
     const db = client.db(dbName);
-    const sapId = Number(req.params.sapId);
+    const sapId = req.params.sapId;
     const year = req.query.year;
+    const trimmedSapId = sapId.trim(); // Trim whitespace from sapId   
+    const trimmedYear = year.trim();
 
-    if (!year) {
+    if (!trimmedYear) {
         return res.status(400).json({ message: 'Year parameter is required' });
     }
-
-    const studentCollection = db.collection(`${year}_retest`);
-    const student = await studentCollection.findOne({ Sap:sapId });
+    // debugging logs
+    // console.log('Fetching student with SAP ID:',trimmedSapId,'from year:',trimmedYear);
+    console.log(`sap id:${trimmedSapId}, year:${trimmedYear}`);    
+    const studentCollection = db.collection(`${trimmedYear}_Regular_Data`);
+    const student = await studentCollection.findOne(
+        { sapId: trimmedSapId },
+        { projection: { 
+            _id: 0 ,
+            __v: 0,
+            createdAt: 0,
+            updatedAt: 0
+        } }
+    );
 
     if (!student) {
         return res.status(404).json({ message: 'Student not found' });
     }
     res.status(200).json({ student });
-}
+};
 
 
 exports.deleteStudent = async (req, res) => {
@@ -144,12 +156,14 @@ exports.deleteStudent = async (req, res) => {
     const sapId = req.params.sapId; // Keep as string
     const subject = req.query.subject; 
     const year = req.query.year;
+    const trimmedSapId = sapId.trim(); // Trim whitespace from sapId   
+    const trimmedYear = year.trim();
 
-    console.log('SAP ID:', sapId);
-    console.log('Year:', year);
+    console.log('SAP ID:', trimmedSapId);
+    console.log('Year:', trimmedYear);
     console.log('Subject:', subject);
 
-    if (!year) {
+    if (!trimmedYear) {
         return res.status(400).json({ message: 'Year query parameter is required' });
     }
 
@@ -157,11 +171,11 @@ exports.deleteStudent = async (req, res) => {
         return res.status(400).json({ message: 'Subject query parameter is required' });
     }
 
-    const studentCollection = db.collection(`${year}_retest`);
+    const studentCollection = db.collection(`${trimmedYear}_retest`);
 
     try {
         const result = await studentCollection.deleteOne({ 
-            sapId: sapId,  // Use sapId as string
+            sapId: trimmedSapId,  // Use sapId as string
             subject: subject 
         });
 

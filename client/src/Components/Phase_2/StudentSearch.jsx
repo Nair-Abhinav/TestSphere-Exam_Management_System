@@ -171,11 +171,29 @@ export default function StudentSearch() {
   };
 
   const handleSearch = async () => {
+    if (!searchId) {
+      alert('Please enter a SAP ID');
+      return;
+    }
+
     try {
-      const student = await fetchStudentData(searchId);
+      const { data } = await axios.get(`http://localhost:5000/students/${searchId}/?year=${selectedYear}`);
+      const student = data?.student;
+
       if (student) {
-        if (!selectedStudents.some((s) => s.sapId === student.sapId)) {
-          setSelectedStudents((prevSelectedStudents) => [...prevSelectedStudents, student]);
+        const normalizedStudent = {
+          sapId: (student.sapId || student.Sap || '').toString(),
+          name: student.name || student.Name || '',
+          rollNo: student.rollNo || student.RollNo || '',
+          division: student.division || student.Division || '',
+          subject: selectedSubject,
+          termTest1: false,
+          termTest2: false,
+          semester: student.semester || student.Semester || ''
+        };
+
+        if (!selectedStudents.some((s) => s.sapId === normalizedStudent.sapId)) {
+          setSelectedStudents((prevSelectedStudents) => [...prevSelectedStudents, normalizedStudent]);
         }
       } else {
         alert(`No student found with SAP ID: ${searchId}`);
