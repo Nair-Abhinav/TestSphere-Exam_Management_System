@@ -92,7 +92,7 @@ exports.getAttendanceMinors = async (year) => {
         const collections = db.collection(`${year}_Minors`);
         
         await collections.createIndex({ Sr_No: 1 });
-        console.log("Year:", year);
+        console.log("Year:",year);
         
         const data = await collections
             .find(
@@ -122,20 +122,18 @@ exports.getAttendanceHonors = async (year) => {
     }
 
     try {
+        console.log("Inside getAttendanceHonors function");
         await client.connect();
         const db = client.db(dbName);
-        const collections = db.collection(year);
-        
-        await collections.createIndex({ Sr_No: 1, Honors_Minors: 1 });
-        console.log("Year:", year);
+        const collections = db.collection(`${year}_HONOR_Data`);
+        console.log(collections + "collection for honors");
+        console.log(`Year:${year.trim()}`);
         
         const data = await collections
-            .find(
-                { Honors_Minors: 1 },
-                { projection: { _id: 0 } }
-            )
-            .sort({ SrNo: 1 })
-            .toArray();
+    .find({}, { projection: { _id: 0 } })
+    .sort({ globSrNo: 1 })
+    .toArray();
+
 
         console.log(`Found ${data.length} Honors records`);
         return data;

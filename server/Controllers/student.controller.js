@@ -127,7 +127,7 @@ exports.getStudent = async (req, res) => {
         return res.status(400).json({ message: 'Year parameter is required' });
     }
 
-    const studentCollection = db.collection(year);
+    const studentCollection = db.collection(`${year}_retest`);
     const student = await studentCollection.findOne({ Sap:sapId });
 
     if (!student) {

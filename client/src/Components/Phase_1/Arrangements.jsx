@@ -25,9 +25,9 @@ export default function Table() {
   const [formBatches, setFormBatches] = useState([{ name: "", capacity: "" }])
   const [selectedElectiveSubjects, setSelectedElectiveSubjects] = useState([]); // For DLE/ILE/OE
   const yearOptions = {
-    SY: "SY",
-    TY: "TY",
-    BE: "BE",
+    SY:"SY",
+    TY:"TY",
+    BE:"BE",
   }
   const semesterOptions = {
     SY: ["3", "4"],
@@ -100,6 +100,12 @@ export default function Table() {
           break;
         case "OE":
           coursetype = "OE";
+          break;
+        case "HONORS":
+          coursetype = "Honors";
+          break;
+        case "MINORS":
+          coursetype = "Minors";
           break;
         default:
           coursetype = "";
@@ -312,15 +318,15 @@ console.log("Subject:", subject);
         doc.setFontSize(12)
         doc.setTextColor(255, 0, 0)
         doc.text(
-           `${year} B. Tech SEM ${sem}: ${exam_info} (2024-25): SUPERVISOR'S REPORT`,
-          //`Final Year B. Tech SEM ${sem}: ${exam_info} (2024-25): SUPERVISOR'S REPORT`,
+          // `${year} B.Tech SEM ${sem}: ${exam_info} (2025-26): SUPERVISOR'S REPORT`,
+          `Final Year B.Tech SEM ${sem}: ${exam_info} (2025-26): SUPERVISOR'S REPORT`,
           margin + contentWidth / 2,
           32,
           { align: "center" },
         )
         doc.setTextColor(0, 0, 0)
         doc.setFontSize(10)
-        doc.text(`Subject: - ${subject}`, margin, 44)
+        doc.text(`Subject: - ________________________`, margin, 44)
         doc.text("Branch: - Information Technology", margin + contentWidth / 2 + 19, 44, { align: "center" })
         doc.text(`Div: - ${div}`, margin + 55, 50)
         doc.text("Date: - _________________", margin, 50)
@@ -347,7 +353,7 @@ console.log("Subject:", subject);
       }
 
       const addFooter = () => {
-        const footerYPosition = doc.internal.pageSize.getHeight() - 18
+        const footerYPosition = doc.internal.pageSize.getHeight() - 12
         doc.setFontSize(12)
         doc.text("Total no. of students present = __________", margin, footerYPosition)
         doc.text("Total no. of students absent = __________", margin + contentWidth / 2 + 45, footerYPosition, {
@@ -395,6 +401,7 @@ console.log("Subject:", subject);
               : student.division || student.Division;
           const studentName = student.name || student.Name;
           const studentSap = student.sapId || student.Sap;
+          const studentRollNo = student.rollNo || student.roll;
 
           // Check if division changes
           if (
@@ -404,7 +411,7 @@ console.log("Subject:", subject);
             student.SubCode !== currentSub
           ) {
             doc.autoTable({
-              head: [["Sr. No.", "SAP No.", "Name of the student", "Signature"]],
+              head: [["Sr. No.", "Roll No.", "SAP No.", "Name of the student", "Signature"]],
               body: pageRows,
               startY: 70,
               styles: {
@@ -422,9 +429,10 @@ console.log("Subject:", subject);
               },
               columnStyles: {
                 0: { halign: "center", cellWidth: 15 },
-                1: { halign: "center", cellWidth: 45 },
-                2: { halign: "left", cellWidth: 80 },
-                3: { halign: "center", cellWidth: 30 },
+                1: { halign: "center", cellWidth: 12 },
+                2: { halign: "center", cellWidth: 45 },
+                3: { halign: "left", cellWidth: 80 },
+                4: { halign: "center", cellWidth: 30 },
               },
               margin: { top: 10, right: margin, left: margin },
             });
@@ -454,7 +462,7 @@ console.log("Subject:", subject);
             pageSrNo = 1;
           }
           // Add student to the current page
-          pageRows.push([pageSrNo++, studentSap, studentName]);
+          pageRows.push([pageSrNo++, studentRollNo, studentSap, studentName]);
           currentIndex++;
           remainingCapacity--;
         }
@@ -462,7 +470,7 @@ console.log("Subject:", subject);
         // Add the last processed page
         if (pageRows.length > 0) {
           doc.autoTable({
-            head: [["Sr. No.", "SAP No.", "Name of the student", "Signature"]],
+            head: [["Sr. No.", "Roll No.", "SAP No.", "Name of the student", "Signature"]],
             body: pageRows,
             startY: 70,
             styles: {
@@ -479,11 +487,12 @@ console.log("Subject:", subject);
               fontSize: 10,
             },
             columnStyles: {
-              0: { halign: "center", cellWidth: 15 },
-              1: { halign: "center", cellWidth: 45 },
-              2: { halign: "left", cellWidth: 80 },
-              3: { halign: "center", cellWidth: 30 },
-            },
+                0: { halign: "center", cellWidth: 15 },
+                1: { halign: "center", cellWidth: 12 },
+                2: { halign: "center", cellWidth: 45 },
+                3: { halign: "left", cellWidth: 80 },
+                4: { halign: "center", cellWidth: 30 },
+              },
             margin: { top: 10, right: margin, left: margin },
           });
 
@@ -553,8 +562,8 @@ console.log("Subject:", subject);
         doc.text(boldText, x + lastLineWidth, currentY)
         doc.setFont("Calibri", "normal")
       }
-      const noticeText = `All the ${selectedYear} B.Tech. IT students are hereby instructed to strictly adhere to the following seating arrangement for their ${selectedExam} for`
-      //const noticeText = `All the Final Year B.Tech. IT students are hereby instructed to strictly adhere to the following seating arrangement for their ${selectedExam} for`
+      const noticeText = `All the ${selectedYear} B.Tech IT students are hereby instructed to strictly adhere to the following seating arrangement for their ${selectedExam} for`
+      //const noticeText = `All the Final Year B.Tech IT students are hereby instructed to strictly adhere to the following seating arrangement for their ${selectedExam} for`
       const subjectText = `${selectedCourseType.toUpperCase()} Subject`
       
       const lineSpacing = 5 // Define line spacing

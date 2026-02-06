@@ -245,7 +245,8 @@ setSubjects(subjectsArray);
                         <option value="ILE">ILE</option>
                         <option value="DLE">DLE</option>
                         <option value="OE">OE</option>
-                        <option value="Minor">Minor</option>
+                        <option value="MINOR">MINORS</option>
+                        <option value="HONOR">HONORS</option>
                     </select>
                 </div>
 

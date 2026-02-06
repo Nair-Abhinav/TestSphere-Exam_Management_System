@@ -55,9 +55,20 @@ router.get('/attendance/minors', async (req, res) => {
 
 router.get('/attendance/honors', async (req, res) => {
     try {
-        const year = req.query.year; // e.g., 'TY'
-        console.log(year);
-        const honors = await getAttendanceHonors(year);
+        const { year } = req.query;
+
+        if (!year) {
+            return res.status(400).json({
+                success: false,
+                message: "Query param 'year' is required"
+            });
+        }
+
+        const trimmedYear = year.trim();
+        console.log("Year:", trimmedYear);
+
+        const honors = await getAttendanceHonors(trimmedYear);
+
         res.status(200).json({
             success: true,
             data: honors
@@ -71,5 +82,6 @@ router.get('/attendance/honors', async (req, res) => {
         });
     }
 });
+
 
 module.exports = router;

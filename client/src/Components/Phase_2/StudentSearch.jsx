@@ -86,8 +86,8 @@ export default function StudentSearch() {
 
   const handleSelectSubject = async (e) => {
     try {
-      const semester = `Sem${selectedSemester}_Subjects`;
-      const response = await axios.get(`http://localhost:5000/api/subjects?semester=${semester}`);
+      const semester = selectedSemester;
+      const response = await axios.get(`http://localhost:5000/api/subjectsRetest?semester=${semester}&year=${selectedYear}`);
       const subjectsData = response.data.data;
       if (Array.isArray(subjectsData)) {
         const subjectsArray = subjectsData.map((subject) => subject.Subject);
