@@ -588,33 +588,33 @@ console.log("Subject:", subject);
             // Use correct division and sapId fields for all types
             const division =
               student.division || student.Division || "";
-            const sapId =
-              student.sapId || student.Sap || "";
+            const rollNo =
+              student.rollNo || student.rollNo || "";
             const SubCode = student.SubCode || "";
             const dept_minor = student.Department || "";
             if (selectedCourseType === "ILE" || selectedCourseType === "DLE" || selectedCourseType === "OE") {
               classroomData.push(
                 (SubCode ? SubCode : "") +
-                (SubCode && sapId ? "-" : "") +
-                (sapId ? sapId : "")
+                (SubCode && rollNo ? "-" : "") +
+                (rollNo ? rollNo : "")
               );
             } else if (selectedCourseType === "Regular") {
               classroomData.push(
                 (division ? division : "") +
-                (division && sapId ? "-" : "") +
-                (sapId ? sapId : "")
+                (division && rollNo ? "-" : "") +
+                (rollNo ? rollNo : "")
               );
             } else if (selectedCourseType === "Minors") {
               classroomData.push(
                 (dept_minor ? dept_minor : "") +
-                (dept_minor && sapId ? "-" : "") +
-                (sapId ? sapId : "")
+                (dept_minor && rollNo ? "-" : "") +
+                (rollNo ? rollNo : "")
               );
             } else if (selectedCourseType === "Honors") {
               classroomData.push(
                 (division ? division : "") +
-                (division && sapId ? "-" : "") +
-                (sapId ? sapId : "")
+                (division && rollNo ? "-" : "") +
+                (rollNo ? rollNo : "")
               );
             }
             currentStudentIndex++
@@ -668,7 +668,6 @@ console.log("Subject:", subject);
       const signatureY = doc.internal.pageSize.getHeight() - 22
       doc.text("Mr. Pravin Hole", 38, signatureY)
       doc.text("Ms. Anushree Patkar", 34, signatureY + 5)
-      doc.text("Ms. Priyanca Gonsalves", 30, signatureY + 10)
       doc.text("Ms. Neha Katre", 100, signatureY + 10)
       doc.text("Dr. Vinaya Sawant", 150, signatureY + 10)
       doc.text("Exam Coordinator", 35, signatureY + 18)
