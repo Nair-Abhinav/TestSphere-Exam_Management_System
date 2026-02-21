@@ -23,7 +23,10 @@ export default function Table() {
   const [type, setType] = useState("")
   const [attendanceData, setAttendanceData] = useState([])
   const [formBatches, setFormBatches] = useState([{ name: "", capacity: "" }])
+  const [selectedTermTest, setSelectedTermTest] = useState("")
+  const [retestSubjects, setRetestSubjects] = useState([])
   const [selectedElectiveSubjects, setSelectedElectiveSubjects] = useState([]); // For DLE/ILE/OE
+  const [academicYear, setAcademicYear] = useState("")
   const yearOptions = {
     SY:"SY",
     TY:"TY",
@@ -127,6 +130,17 @@ export default function Table() {
       console.error("Error fetching subjects:", error);
     }
   }
+
+  // Retest subject fetch
+  const handleRetestSelectSubject = async (termTest) => {
+    if (!selectedYear || !selectedSemester || !termTest) return
+    const res = await axios.get(
+      `http://localhost:5000/api/subjectsRetest?year=${selectedYear}&semester=${selectedSemester}&termTest=${termTest}`
+    )
+    const arr = res.data.data?.map((s) => s.Subject) || []
+    setRetestSubjects(arr)
+  }
+  
   const handleSemesterChange = async (e) => {
     setSelectedSemester(e.target.value)
     setSelectedCourseType("")
@@ -175,9 +189,14 @@ export default function Table() {
     if (!selectedExam) return "Please select an exam"
     if (!selectedYear) return "Please select a year"
     if (!selectedSemester) return "Please select a semester"
-    if (!selectedCourseType) return "Please select a course type"
-    if ((selectedCourseType === "Regular" || selectedCourseType === "elective") && !selectedSubject)
-      return "Please select a subject"
+    if (selectedExam === "Retest") {
+      if (!selectedTermTest) return "Please select a term test"
+      if (!selectedSubject) return "Please select a subject"
+    } else {
+      if (!selectedCourseType) return "Please select a course type"
+      if ((selectedCourseType === "Regular" || selectedCourseType === "elective") && !selectedSubject)
+        return "Please select a subject"
+    }
     if (classrooms.length === 0 && selectedExam !== "Practicals/Orals") return "Please add at least one classroom"
     if (classrooms.some((c) => !c.room || !c.capacity) && selectedExam !== "Practicals/Orals")
       return "Please fill in all classroom details"
@@ -244,6 +263,23 @@ export default function Table() {
       throw error
     }
   }
+
+  const fetchRetestStudentsData = async () => {
+    try {
+      if (!selectedYear || !selectedSubject || !selectedTermTest) {
+        throw new Error("Year, subject and term test are required for retest.")
+      }
+      const res = await axios.get(
+        `http://localhost:5000/students/retest/${encodeURIComponent(selectedSubject)}/${selectedTermTest}?year=${selectedYear}`
+      )
+      console.log("Retest Students Data:", res.data)
+      return res.data.students
+    } catch (error) {
+      console.error("Error fetching retest students data:", error.message)
+      throw error
+    }
+  }
+
   const handleDownload = async (type) => {
     try {
       setType(type)
@@ -253,8 +289,10 @@ export default function Table() {
         return
       }
 
-      // Directly fetch and use the data
-      const data = await fetchAttendanceData(selectedYear, selectedSemester, selectedCourseType)
+      // Fetch data based on exam type
+      const data = selectedExam === "Retest"
+        ? await fetchRetestStudentsData()
+        : await fetchAttendanceData(selectedYear, selectedSemester, selectedCourseType)
 
       if (!data || !data.length) {
         setAlert("No data available to generate PDF")
@@ -273,9 +311,11 @@ export default function Table() {
         return
       }
 
+      // For Retest exam + attendance sheet, use the dedicated retest PDF type
+      const pdfType = selectedExam === "Retest" && type === "attendance" ? "retest" : type
       // Set the data and type - this will trigger the useEffect
       setAttendanceData(data)
-      setType(type)
+      setType(pdfType)
     } catch (error) {
       console.error("Error during PDF generation:", error.message)
       setAlert("Error generating PDF: " + error.message)
@@ -318,8 +358,8 @@ console.log("Subject:", subject);
         doc.setFontSize(12)
         doc.setTextColor(255, 0, 0)
         doc.text(
-          // `${year} B.Tech SEM ${sem}: ${exam_info} (2025-26): SUPERVISOR'S REPORT`,
-          `Final Year B.Tech SEM ${sem}: ${exam_info} (2025-26): SUPERVISOR'S REPORT`,
+          // `${year} B.Tech SEM ${sem}: ${exam_info} (${academicYear || "2025-26"}): SUPERVISOR'S REPORT`,
+          `Final Year B.Tech SEM ${sem}: ${exam_info} (${academicYear || "2025-26"}): SUPERVISOR'S REPORT`,
           margin + contentWidth / 2,
           32,
           { align: "center" },
@@ -562,9 +602,11 @@ console.log("Subject:", subject);
         doc.text(boldText, x + lastLineWidth, currentY)
         doc.setFont("Calibri", "normal")
       }
-      const noticeText = `All the ${selectedYear} B.Tech IT students are hereby instructed to strictly adhere to the following seating arrangement for their ${selectedExam} for`
-      //const noticeText = `All the Final Year B.Tech IT students are hereby instructed to strictly adhere to the following seating arrangement for their ${selectedExam} for`
-      const subjectText = `${selectedCourseType.toUpperCase()} Subject`
+      const noticeText = `All the ${selectedYear} B.Tech IT students are hereby instructed to strictly adhere to the following seating arrangement for their ${selectedExam} (${academicYear || "2025-26"}) for`
+      //const noticeText = `All the Final Year B.Tech IT students are hereby instructed to strictly adhere to the following seating arrangement for their ${selectedExam} (${academicYear || "2025-26"}) for`
+      const subjectText = selectedExam === "Retest"
+        ? `Retest - ${selectedSubject} (${selectedTermTest === "TermTest1" ? "Term Test I" : "Term Test II"})`
+        : `${selectedCourseType.toUpperCase()} Subject`
       
       const lineSpacing = 5 // Define line spacing
       wrapTextWithBold(noticeText, subjectText, 22, 60, doc.internal.pageSize.getWidth() - 45, lineSpacing)
@@ -589,13 +631,19 @@ console.log("Subject:", subject);
             const division =
               student.division || student.Division || "";
             const rollNo =
-              student.rollNo || student.rollNo || "";
+              student.rollNo || student.roll || student.RollNo || "";
             const SubCode = student.SubCode || "";
             const dept_minor = student.Department || "";
-            if (selectedCourseType === "ILE" || selectedCourseType === "DLE" || selectedCourseType === "OE") {
+            if (selectedExam === "Retest") {
               classroomData.push(
-                (SubCode ? SubCode : "") +
-                (SubCode && rollNo ? "-" : "") +
+                (division ? division : "") +
+                (division && rollNo ? "-" : "") +
+                (rollNo ? rollNo : "")
+              );
+            } else if (selectedCourseType === "ILE" || selectedCourseType === "DLE" || selectedCourseType === "OE") {
+              classroomData.push(
+                (division ? division : "") +
+                (division && rollNo ? "-" : "") +
                 (rollNo ? rollNo : "")
               );
             } else if (selectedCourseType === "Regular") {
@@ -675,6 +723,141 @@ console.log("Subject:", subject);
       doc.text("HOD, IT", 158, signatureY + 18)
       // Save the PDF
       doc.save("Sitting_Report.pdf")
+    }
+    else if (type === "retest") {
+      // Retest Attendance Sheet — same layout as attendance, uses retest students array
+      const doc = new jsPDF("p", "mm", "a4")
+      doc.setFont("Times New Roman", "bold")
+      const margin = 20
+      const pageWidth = doc.internal.pageSize.getWidth()
+      const contentWidth = pageWidth - 2 * margin
+
+      const addRetestHeader = (blockNo, div) => {
+        doc.addImage(logo, "PNG", margin, 5, contentWidth, 20)
+        doc.setFontSize(12)
+        doc.setTextColor(255, 0, 0)
+        doc.text(
+          `${selectedYear} B.Tech SEM ${selectedSemester}: Retest (${selectedTermTest === "TermTest1" ? "Term Test I" : "Term Test II"}) (${academicYear || "2025-26"}): SUPERVISOR'S REPORT`,
+          margin + contentWidth / 2,
+          32,
+          { align: "center" }
+        )
+        doc.setTextColor(0, 0, 0)
+        doc.setFontSize(10)
+        doc.text(`Subject: ${selectedSubject}`, margin, 44)
+        doc.text("Branch: - Information Technology", margin + contentWidth / 2 + 19, 44, { align: "center" })
+        doc.text(`Div: - ${div}`, margin + 55, 50)
+        doc.text("Date: - _________________", margin, 50)
+        doc.text("Time: - _________________", margin + contentWidth / 2 + 14, 50, { align: "center" })
+        doc.setFontSize(12)
+        const blockNoX = margin + contentWidth - 30
+        const blockNoY = 52
+        if (/\d/.test(blockNo)) {
+          doc.text(`Block No: ${blockNo}`, blockNoX, blockNoY)
+        } else {
+          doc.text(`${blockNo}`, blockNoX, blockNoY)
+        }
+        const boxWidth = 40
+        const boxHeight = 15
+        doc.rect(blockNoX - 8, blockNoY - 8, boxWidth, boxHeight)
+        doc.setFontSize(10)
+        doc.text("NOTE: (a) Please arrange answer papers serially according to SAP number.", margin, 60)
+        doc.text(
+          "(b) Please take the signature of the student on the attendance sheet serially according to SAP No.",
+          margin + 12,
+          65
+        )
+      }
+
+      const addRetestFooter = () => {
+        const footerYPosition = doc.internal.pageSize.getHeight() - 12
+        doc.setFontSize(12)
+        doc.text("Total no. of students present = __________", margin, footerYPosition)
+        doc.text("Total no. of students absent = __________", margin + contentWidth / 2 + 45, footerYPosition, {
+          align: "center",
+        })
+        doc.text(
+          "Name & Signature of Junior Supervisor = _____________________________________________",
+          margin,
+          footerYPosition + 8
+        )
+      }
+
+      const retestBlockNos = classrooms.map((c) => c.room)
+      let rCurrentIndex = 0
+      let rCurrentClassroomIndex = 0
+      let rRemainingCapacity = parseInt(classrooms[0].capacity) || 0
+      const totalRetestRows = attendanceData.length
+
+      let rCurrentDivision = attendanceData[0]?.division || attendanceData[0]?.Division || ""
+      addRetestHeader(retestBlockNos[rCurrentClassroomIndex], rCurrentDivision)
+
+      while (rCurrentIndex < totalRetestRows) {
+        const pageRows = []
+        let pageSrNo = 1
+
+        while (rCurrentIndex < totalRetestRows) {
+          const student = attendanceData[rCurrentIndex]
+          const studentDivision = student.division || student.Division || ""
+          const studentName = student.name || student.Name || ""
+          const studentSap = student.sapId || student.Sap || ""
+          const studentRollNo = student.rollNo || student.roll || student.RollNo || ""
+
+          if (studentDivision !== rCurrentDivision || rRemainingCapacity === 0) {
+            doc.autoTable({
+              head: [["Sr. No.", "Roll No.", "SAP No.", "Name of the student", "Signature"]],
+              body: pageRows,
+              startY: 70,
+              styles: { halign: "center", lineColor: [0,0,0], lineWidth: 0.3, fillColor: [255,255,255], fontSize: 10, cellPadding: 1 },
+              headStyles: { fontStyle: "bold", textColor: [0,0,0], fontSize: 10 },
+              columnStyles: {
+                0: { halign: "center", cellWidth: 15 },
+                1: { halign: "center", cellWidth: 12 },
+                2: { halign: "center", cellWidth: 45 },
+                3: { halign: "left", cellWidth: 80 },
+                4: { halign: "center", cellWidth: 30 },
+              },
+              margin: { top: 10, right: margin, left: margin },
+            })
+            addRetestFooter()
+            doc.addPage()
+
+            if (rRemainingCapacity === 0) {
+              rCurrentClassroomIndex = (rCurrentClassroomIndex + 1) % classrooms.length
+              rRemainingCapacity = parseInt(classrooms[rCurrentClassroomIndex].capacity) || 0
+            }
+            rCurrentDivision = studentDivision
+            addRetestHeader(retestBlockNos[rCurrentClassroomIndex], rCurrentDivision)
+            pageRows.length = 0
+            pageSrNo = 1
+          }
+
+          pageRows.push([pageSrNo++, studentRollNo, studentSap, studentName])
+          rCurrentIndex++
+          rRemainingCapacity--
+        }
+
+        if (pageRows.length > 0) {
+          doc.autoTable({
+            head: [["Sr. No.", "Roll No.", "SAP No.", "Name of the student", "Signature"]],
+            body: pageRows,
+            startY: 70,
+            styles: { halign: "center", lineColor: [0,0,0], lineWidth: 0.3, fillColor: [255,255,255], fontSize: 10, cellPadding: 1 },
+            headStyles: { fontStyle: "bold", textColor: [0,0,0], fontSize: 10 },
+            columnStyles: {
+              0: { halign: "center", cellWidth: 15 },
+              1: { halign: "center", cellWidth: 12 },
+              2: { halign: "center", cellWidth: 45 },
+              3: { halign: "left", cellWidth: 80 },
+              4: { halign: "center", cellWidth: 30 },
+            },
+            margin: { top: 10, right: margin, left: margin },
+          })
+          addRetestFooter()
+        }
+      }
+
+      doc.save(`Retest_Attendance_${selectedYear}_${selectedSubject}_${selectedTermTest}.pdf`)
     }
     else if (type === "classroom") {
       const doc = new jsPDF("p", "mm", "a4");
@@ -794,10 +977,9 @@ console.log("Subject:", subject);
     
             if (seatIndex < classroom.capacity && currentStudentIndex < attendanceData.length) {
               const student = attendanceData[currentStudentIndex];
-              const rollno = student.RollNo;
-              // const roll = student.roll;
+              const rollno = student.rollNo || student.roll || student.RollNo || "";
               doc.setFontSize(11);
-              doc.text(rollno, x + seatWidth / 2, y + seatHeight / 2 + 2, { align: "center" });
+              doc.text(String(rollno), x + seatWidth / 2, y + seatHeight / 2 + 2, { align: "center" });
               currentStudentIndex++;
             }
             seatIndex++;
@@ -986,7 +1168,13 @@ console.log("Subject:", subject);
           <select
             id="exam-select"
             value={selectedExam}
-            onChange={(e) => setSelectedExam(e.target.value)}
+            onChange={(e) => {
+              setSelectedExam(e.target.value)
+              setSelectedTermTest("")
+              setRetestSubjects([])
+              setSelectedSubject("")
+              setSelectedCourseType("")
+            }}
             className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           >
             <option value="">Select Exam</option>
@@ -1017,7 +1205,50 @@ console.log("Subject:", subject);
             </select>
           </div>
         )}
-        {selectedSemester && (
+        {/* Retest: Term Test dropdown */}
+        {selectedSemester && selectedExam === "Retest" && (
+          <div>
+            <label htmlFor="termtest-select" className="block text-sm font-medium text-gray-700">
+              Term Test
+            </label>
+            <select
+              id="termtest-select"
+              value={selectedTermTest}
+              onChange={(e) => {
+                setSelectedTermTest(e.target.value)
+                setSelectedSubject("")
+                handleRetestSelectSubject(e.target.value)
+              }}
+              className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            >
+              <option value="">Select Term Test</option>
+              <option value="termTest1">Term Test I</option>
+              <option value="termTest2">Term Test II</option>
+            </select>
+          </div>
+        )}
+        {/* Retest: Subject dropdown */}
+        {selectedTermTest && selectedExam === "Retest" && (
+          <div>
+            <label htmlFor="retest-subject-select" className="block text-sm font-medium text-gray-700">
+              Subject
+            </label>
+            <select
+              id="retest-subject-select"
+              value={selectedSubject}
+              onChange={(e) => setSelectedSubject(e.target.value)}
+              className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            >
+              <option value="">Select Subject</option>
+              {retestSubjects.map((subject) => (
+                <option key={subject} value={subject}>
+                  {subject}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+        {selectedSemester && selectedExam !== "Retest" && (
           <div>
             <label htmlFor="course-type-select" className="block text-sm font-medium text-gray-700">
               Course Type
@@ -1078,6 +1309,21 @@ console.log("Subject:", subject);
                 </label>
               ))}
             </div>
+          </div>
+        )}
+        {selectedSemester && (
+          <div>
+            <label htmlFor="academic-year-input" className="block text-sm font-medium text-gray-700">
+              Academic Year
+            </label>
+            <input
+              type="text"
+              id="academic-year-input"
+              value={academicYear}
+              onChange={(e) => setAcademicYear(e.target.value)}
+              placeholder="e.g. 2025-2026"
+              className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            />
           </div>
         )}
         {(selectedSubject ||

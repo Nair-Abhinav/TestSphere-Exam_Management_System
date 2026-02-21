@@ -188,3 +188,38 @@ exports.deleteStudent = async (req, res) => {
         res.status(500).json({ message: 'An error occurred while deleting the student', error });
     }
 };
+
+// retest students list based on year , subject and termtest ie termTest1 or termTest2
+exports.getRetestStudentsByTermTest = async (req, res) => {
+    await client.connect();
+    const db = client.db(dbName);
+    console.log('Inside getRetestStudentsByTermTest');
+
+    const subject = req.params.subject.trim();
+    const termTest = req.params.termTest.trim();
+    const year = req.query.year.trim();
+    
+    console.log('Subject:', subject);
+    console.log('TermTest:', termTest);
+    console.log('Year:', year);
+
+
+    if (!year) {
+        return res.status(400).json({ message: 'Year query parameter is required' });
+    }
+    if (!subject) {
+        return res.status(400).json({ message: 'Subject query parameter is required' });
+    }
+    if (!termTest) {
+        return res.status(400).json({ message: 'TermTest query parameter is required' });
+    }
+    
+    const studentCollection = db.collection(`${year}_retest`);
+    // if the subject matches and param termTest value is true then add into array
+    const students = await studentCollection.find({
+        subject: subject,
+        [termTest]: true
+    }).toArray();
+    
+    res.status(200).json({ students });
+}

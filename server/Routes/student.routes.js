@@ -33,4 +33,8 @@ router.get('/retest/:subject', studentController.getRetestStudentsBySubject);
 // Route to delete a student by SAP ID and subject
 router.delete('/retest/:sapId', studentController.deleteStudent);
 
+// Route to get all Retest students based on subject , termtest and year
+// Example: /retest?year=2024&subject=Deep Learning&termTest=termTest1
+router.get('/retest/:subject/:termTest', studentController.getRetestStudentsByTermTest);
+
 module.exports = router;

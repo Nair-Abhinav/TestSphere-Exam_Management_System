@@ -541,7 +541,7 @@ function TimeTable() {
     })
 
     const signatureY = 280
-    doc.text("Ms. Priyanca Gonsalves", 30, signatureY)
+    doc.text("Ms. Anushree Patkar", 30, signatureY)
     doc.text("Ms. Neha Katre", 100, signatureY)
     doc.text("Dr. Vinaya Sawant", 150, signatureY)
     doc.text("Exam Coordinator", 35, signatureY + 8)
