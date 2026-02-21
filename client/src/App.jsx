@@ -11,6 +11,7 @@ import HODPage from "./Components/Phase_2/HODPage";
 import AdministratorPage from "./Components/Phase_3/AdministratorPage";
 import StudentUpload from "./Components/Phase_3/studentUpload";
 import SubjectUpload from "./Components/Phase_3/SubjectUpload";
+import DeleteData from "./Components/Phase_3/DeleteData";
 import { UserContext } from "./Context/userContext";
 import RefreshHandler from "./Components/RefreshHandler";
 
@@ -62,6 +63,7 @@ function App() {
           <Route path="/administrator" element={<PrivateRoute element={<AdministratorPage />} />} />
           <Route path="/administrator/student-upload" element={<PrivateRoute element={<StudentUpload />} />} />
           <Route path="/administrator/subject-upload" element={<PrivateRoute element={<SubjectUpload />} />} />
+          <Route path="/administrator/delete-data" element={<PrivateRoute element={<DeleteData />} />} />
         </Routes>
       </main>
       {isLoggedIn && <Footer />}

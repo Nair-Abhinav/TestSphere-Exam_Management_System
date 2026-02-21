@@ -17,11 +17,17 @@ function AdministratorPage() {
             onClick: () => navigate('/administrator/subject-upload'),
             color: 'bg-green-600 hover:bg-green-700',
         },
+        {
+            title: 'Delete Data',
+            buttonText: 'Go to Delete Data',
+            onClick: () => navigate('/administrator/delete-data'),
+            color: 'bg-red-600 hover:bg-red-700',
+        },
     ];
 
     return (
         <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 py-10">
-            <div className="grid gap-8 sm:grid-cols-1 md:grid-cols-2 max-w-4xl w-full">
+            <div className="grid gap-8 sm:grid-cols-1 md:grid-cols-3 max-w-5xl w-full">
                 {cards.map((card, index) => (
                     <div
                         key={index}
