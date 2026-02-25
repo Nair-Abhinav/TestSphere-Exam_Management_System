@@ -50,7 +50,7 @@ const uploadExcel = async (req, res) => {
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const data = xlsx.utils.sheet_to_json(worksheet, { header: 1 });
 
-      for (let i = 7; i < data.length; i++) {
+      for (let i = 1; i < data.length; i++) {
         if (data[i][0] && data[i][1] && data[i][2] && data[i][3]) {
           const student = {
             srNo: data[i][0],
